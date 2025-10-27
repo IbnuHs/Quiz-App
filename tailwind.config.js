@@ -2,7 +2,13 @@
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        roboto: ["Roboto", "sans-serif"],
+        delius: ["Delius", "cursive"],
+        bicount: ["Bitcount Grid Single", "system-ui"],
+      },
+    },
   },
   plugins: [],
 };
