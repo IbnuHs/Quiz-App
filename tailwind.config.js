@@ -8,6 +8,10 @@ export default {
         delius: ["Delius", "cursive"],
         bicount: ["Bitcount Grid Single", "system-ui"],
       },
+      colors: {
+        "base-blue": "#1C6DD0",
+        "base-white": "#FFF8F3",
+      },
     },
   },
   plugins: [],
