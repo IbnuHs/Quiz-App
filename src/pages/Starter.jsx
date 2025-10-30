@@ -10,12 +10,13 @@ export const Starter = () => {
   const navigate = useNavigate();
   function generateToken() {
     mutate(undefined, {
-      onSuccess: () => {
+      onSuccess: res => {
+        console.log(res);
         navigate("/configuration");
       },
     });
   }
-  if (progress && !progress.complet) {
+  if (progress && progress.complete === false) {
     return <Navigate to="quiz" replace />;
   }
   return (

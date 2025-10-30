@@ -8,14 +8,13 @@ export const Configuration = () => {
   const { data } = useGetCategory();
   const { mutate, isSuccess, isError, isPending } = useQuiz();
   const progress = JSON.parse(localStorage.getItem("progress")) || null;
-  // const [quiz, setQuiz] = useState(null);
   const [config, setConfig] = useState({
     category: "",
     difficulty: "",
     type: "",
   });
-  if (progress && !progress.complet) {
-    return <Navigate to="quiz" replace />;
+  if (progress && !progress.complete) {
+    return <Navigate to="/quiz" replace />;
   }
   const navigate = useNavigate();
   const navigeteToQuiz = e => {

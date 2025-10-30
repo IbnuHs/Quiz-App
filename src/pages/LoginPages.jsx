@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export const LoginPages = () => {
   const [visible, setVisible] = useState(false);
@@ -9,10 +9,14 @@ export const LoginPages = () => {
     password: "",
   });
   const navigate = useNavigate();
-  const users = JSON.parse(localStorage.getItem("users"));
-  const onRegister = e => {
+  const users = JSON.parse(localStorage.getItem("users")) || null;
+  const isLogin = JSON.parse(localStorage.getItem("isLogin")) || null;
+  if (isLogin && isLogin.isLogin) {
+    return <Navigate to="/" />;
+  }
+  const onLogin = e => {
     e.preventDefault();
-    const user = users.find(
+    const user = users?.find(
       i => i.username === data.username && i.password === data.password
     );
     if (!user) {
@@ -29,7 +33,7 @@ export const LoginPages = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
       <form
-        onSubmit={onRegister}
+        onSubmit={onLogin}
         className="flex font-roboto m-auto flex-col border-2 border-gray-400 w-full rounded-md px-5 py-10 max-w-[300px] gap-5 md:max-w-[380px] md:px-8 lg:px-10 lg:max-w-[400px] lg:py-16">
         <h3 className="font-semibold text-center font-bicount text-[20px] mb-4 lg:text-[22px] xl:text-[24px]">
           Login

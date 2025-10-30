@@ -103,7 +103,6 @@ export const QuizPage = () => {
       setIsAnswer(false);
       setChoice("");
     }, 500);
-    console.log("Direct Choice Answer");
     return () => clearInterval(timer);
   };
   useEffect(() => {
@@ -139,8 +138,16 @@ export const QuizPage = () => {
       {quiz && indexQuestion <= data.length - 1 && !complete ? (
         <div className="flex flex-col items-center gap-3 justify-center w-full md:max-w-[400px]">
           <div className=" border-2 border-gray-400 w-full text-center rounded-md text-gray-500 font-semibold relative">
-            <div className="absolute bg-gray-400 top-0 bottom-0 w-[100%] -z-10"></div>
-            <p className="z-20 text-white">{countDown}</p>
+            <div
+              className={`absolute ${
+                countDown >= 0 && countDown <= 20
+                  ? "bg-red-500"
+                  : countDown >= 21 && countDown <= 40
+                  ? "bg-yellow-300"
+                  : "bg-green-400"
+              } top-0 bottom-0  -z-10`}
+              style={{ width: `${(countDown / 60) * 100}%` }}></div>
+            <p className="z-20 text-gray-600">{countDown}</p>
           </div>
           <div className="border-2 border-gray-400 min-w-full rounded-md px-5 py-9 flex flex-col gap-4 md:py-12">
             <div className="">
