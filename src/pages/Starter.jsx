@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import img from "../assets/organic-flat-people-asking-questions-illustration.png";
 import { useGenerateToken } from "../hooks/useGenerateToken";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 export const Starter = () => {
   const { mutate, isPending } = useGenerateToken();
+  const progress = JSON.parse(localStorage.getItem("progress")) || null;
   const navigate = useNavigate();
   function generateToken() {
     mutate(undefined, {
@@ -14,8 +15,11 @@ export const Starter = () => {
       },
     });
   }
+  if (progress && !progress.complet) {
+    return <Navigate to="quiz" replace />;
+  }
   return (
-    <div className="flex h-screen items-center justify-center px-6">
+    <div className="flex items-center justify-center px-6">
       <div className="border-2 border-gray-400 shadow-md p-12 m-auto rounded-md box-content flex flex-col md:p-14 md:max-w-[500px]">
         <h3 className="text-center font-semibold text-[24px] font-bicount md:text-[28px]">
           Quiz Time

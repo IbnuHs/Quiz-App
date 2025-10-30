@@ -1,55 +1,95 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useQuiz } from "../hooks/useGetQuiz";
+import { useNavigate } from "react-router-dom";
 import {
   FaRegFaceGrinStars,
   FaRegFaceLaughWink,
   FaRegFaceMeh,
 } from "react-icons/fa6";
+import { parse } from "postcss";
 
 export const QuizPage = () => {
+  const user = localStorage.getItem("isLogin");
   const quiz = localStorage.getItem("quiz");
   const [indexQuestion, setIndexQuestion] = useState(0);
   const [choice, setChoice] = useState("");
-  const [countDown, setCountDown] = useState(10);
+  const [countDown, setCountDown] = useState(60);
   const [correct_answer, setCorrect_answer] = useState(0);
+  const [wrongAnswer, setWrongAnswer] = useState(0);
   const [disable, setDisable] = useState(false);
   const [isAnswer, setIsAnswer] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [reload, setReload] = useState(false);
+  const [totalAnswer, setTotalAnswer] = useState(0);
 
-  function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  const progress = localStorage.getItem("progress");
+  useEffect(() => {
+    const saveProgress = progress ? JSON.parse(progress) : null;
+    if (saveProgress && !reload) {
+      if (saveProgress.complete) {
+        setCountDown(0);
+      }
+      setIndexQuestion(saveProgress.indexQuestion);
+      setChoice(saveProgress.choice);
+      setCorrect_answer(saveProgress.correct_answer);
+      setCountDown(saveProgress.countDown);
+      setWrongAnswer(saveProgress.wrongAnswer);
+      setTotalAnswer(saveProgress.totalAnswer);
+      setReload(true);
     }
-    return shuffled;
+  }, [progress]);
+  function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = array.length - 1; i > 0; i--) {
+      const random = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[random]] = [newArray[random], newArray[i]];
+    }
+    return newArray;
   }
   const navigate = useNavigate();
+  if (!user) {
+    navigate("/login");
+  }
+  const saveAllProgress = () => {
+    const parseUser = JSON.parse(user);
+    const progress = {
+      username: parseUser.username,
+      countDown: countDown,
+      correct_answer: correct_answer,
+      wrongAnswer: wrongAnswer,
+      complete: complete,
+      choice: choice,
+      indexQuestion: indexQuestion,
+      wrongAnswer: wrongAnswer,
+      totalAnswer: totalAnswer,
+    };
+    localStorage.setItem("progress", JSON.stringify(progress));
+  };
   useEffect(() => {
     if (!quiz) {
       navigate("/configuration");
     }
   }, [quiz]);
-  const data = JSON.parse(quiz);
-  data?.map(item => {
-    item.incorrect_answers.push(item.correct_answer);
-  });
-  const mergedData = useMemo(() => {
-    return data.map(item => ({
+  const data = useMemo(() => {
+    return quiz ? JSON.parse(quiz) : null;
+  }, [quiz]);
+  const shuffleData = useMemo(() => {
+    return data?.map(item => ({
       ...item,
-      all_answer: shuffleArray([
+      allAnswers: shuffleArray([
         ...item.incorrect_answers,
         item.correct_answer,
       ]),
     }));
-  });
+  }, [data]);
   const answer = item => {
     setChoice(item);
     setDisable(true);
     setIsAnswer(true);
+    setTotalAnswer(prev => prev + 1);
     if (data[indexQuestion].correct_answer === item) {
       setCorrect_answer(prev => prev + 1);
+    } else {
+      setWrongAnswer(prev => prev + 1);
     }
     const timer = setTimeout(() => {
       if (indexQuestion < data.length - 1) {
@@ -57,50 +97,45 @@ export const QuizPage = () => {
       }
       if (indexQuestion === data.length - 1) {
         setComplete(true);
+        setCountDown(0);
       }
       setDisable(false);
       setIsAnswer(false);
       setChoice("");
-    }, 1000);
+    }, 500);
     console.log("Direct Choice Answer");
     return () => clearInterval(timer);
   };
   useEffect(() => {
-    console.log(countDown);
-    if (countDown > 0 && indexQuestion < data.length) {
+    if (countDown > 0) {
       const timer = setTimeout(() => {
         setCountDown(prev => prev - 1);
+        saveAllProgress();
       }, 1000);
       return () => clearTimeout(timer);
     }
-    if (countDown === 0 && !isAnswer && indexQuestion < data.length - 1) {
-      setIndexQuestion(prev => prev + 1);
-      setCountDown(10);
-    }
-
-    if (countDown === 0 && !isAnswer && indexQuestion === data.length - 1) {
-      console.log("check");
+    if (countDown === 0) {
+      saveAllProgress();
       setComplete(true);
     }
     return;
   }, [indexQuestion, countDown]);
-  useEffect(() => {
-    if (indexQuestion <= data.length) {
-      setCountDown(10);
-    }
-  }, [indexQuestion]);
   const tryAgain = () => {
+    localStorage.removeItem("progress");
+    setTotalAnswer(0);
+    setWrongAnswer(0);
     setIndexQuestion(0);
+    setCountDown(60);
     setCorrect_answer(0);
     setComplete(false);
   };
   const restart = () => {
     localStorage.removeItem("quiz");
+    localStorage.removeItem("progress");
     navigate("/configuration");
   };
-  console.log(data.length);
   return (
-    <div className="min-h-screen flex flex-col items-center gap-3 w-full justify-center px-8 ">
+    <div className="flex flex-col items-center gap-3 w-full justify-center px-8 ">
       {quiz && indexQuestion <= data.length - 1 && !complete ? (
         <div className="flex flex-col items-center gap-3 justify-center w-full md:max-w-[400px]">
           <div className=" border-2 border-gray-400 w-full text-center rounded-md text-gray-500 font-semibold relative">
@@ -115,30 +150,28 @@ export const QuizPage = () => {
               <p
                 className="font-semibold font-roboto mt-5 xl:text-[18px]"
                 dangerouslySetInnerHTML={{
-                  __html: mergedData[indexQuestion].question,
+                  __html: shuffleData[indexQuestion].question,
                 }}></p>
             </div>
 
             <ol className="flex flex-col gap-2 w-full">
-              {mergedData[indexQuestion].incorrect_answers.map(
-                (item, index) => (
-                  <li className="" key={index}>
-                    <button
-                      disabled={disable}
-                      onClick={() => answer(item)}
-                      className={`border-2 border-gray-400 ${
-                        choice === item &&
-                        item === data[indexQuestion].correct_answer
-                          ? "bg-green-500 text-white font-semibold"
-                          : choice === item &&
-                            item !== data[indexQuestion].correct_answer
-                          ? "bg-red-500 text-gray-100 font-semibold"
-                          : ""
-                      }  rounded-md text-[15px] py-1 w-full xl:text-[16px]`}
-                      dangerouslySetInnerHTML={{ __html: item }}></button>
-                  </li>
-                )
-              )}
+              {shuffleData[indexQuestion].allAnswers.map((item, index) => (
+                <li className="" key={index}>
+                  <button
+                    disabled={disable}
+                    onClick={() => answer(item)}
+                    className={`border-2 border-gray-400 ${
+                      choice === item &&
+                      item === data[indexQuestion].correct_answer
+                        ? "bg-green-500 text-white font-semibold"
+                        : choice === item &&
+                          item !== data[indexQuestion].correct_answer
+                        ? "bg-red-500 text-gray-100 font-semibold"
+                        : ""
+                    }  rounded-md text-[15px] py-1 w-full xl:text-[16px]`}
+                    dangerouslySetInnerHTML={{ __html: item }}></button>
+                </li>
+              ))}
             </ol>
           </div>
         </div>
@@ -169,10 +202,36 @@ export const QuizPage = () => {
               <FaRegFaceGrinStars className="text-[28px] lg:text-[36px]" />
             </div>
           )}
-
-          <p className="font-bicount lg:text-[24px]">
-            {correct_answer}/{data.length}
-          </p>
+          <table className="font-bicount text-start m-auto">
+            <tbody>
+              <tr>
+                <td>
+                  <h5>Total Answer </h5>
+                </td>
+                <td>
+                  <p className="">
+                    : {totalAnswer}/{data.length}
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <h5>Correct </h5>
+                </td>
+                <td>
+                  <p className=" text-green-600">: {correct_answer}</p>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <h5>Wrong </h5>
+                </td>
+                <td>
+                  <p className=" text-red-600">: {wrongAnswer}</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
           <div className="flex justify-center items-center font-bicount">
             <button
               onClick={tryAgain}
