@@ -10,8 +10,7 @@ export const Starter = () => {
   const navigate = useNavigate();
   function generateToken() {
     mutate(undefined, {
-      onSuccess: res => {
-        console.log(res);
+      onSuccess: () => {
         navigate("/configuration");
       },
     });

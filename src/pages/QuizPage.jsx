@@ -118,7 +118,7 @@ export const QuizPage = () => {
       setComplete(true);
     }
     return;
-  }, [indexQuestion, countDown]);
+  }, [countDown]);
   const tryAgain = () => {
     localStorage.removeItem("progress");
     setTotalAnswer(0);

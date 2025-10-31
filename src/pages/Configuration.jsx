@@ -21,6 +21,13 @@ export const Configuration = () => {
     e.preventDefault();
     mutate(config, {
       onSuccess: res => {
+        if (res.response_code === 3) {
+          return navigate("/login");
+        }
+        if (res.results.length === 0) {
+          alert("Empty Question");
+          return;
+        }
         localStorage.setItem("quiz", JSON.stringify(res.results));
         navigate("/quiz");
       },
